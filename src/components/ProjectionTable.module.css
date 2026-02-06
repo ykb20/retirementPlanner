@@ -1,0 +1,74 @@
+.wrapper h2 {
+  margin: 0 0 0.75rem;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  background: var(--color-bg-alt);
+  padding: 0.5rem 0.6rem;
+  text-align: right;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text-light);
+}
+
+.table th:nth-child(1),
+.table th:nth-child(2),
+.table th:nth-child(3),
+.table th:nth-child(4) {
+  text-align: left;
+}
+
+.table td {
+  padding: 0.35rem 0.6rem;
+  text-align: right;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.table td:nth-child(1),
+.table td:nth-child(2),
+.table td:nth-child(3) {
+  text-align: left;
+}
+
+.phaseCell {
+  text-align: left !important;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.totalCol {
+  font-weight: 600;
+}
+
+.preRetirement {
+  background: var(--color-row-pre);
+}
+
+.retirementYear {
+  background: var(--color-row-retirement);
+  font-weight: 600;
+}
+
+.depleted {
+  background: var(--color-row-depleted);
+  color: var(--color-danger);
+}

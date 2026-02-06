@@ -1,0 +1,87 @@
+.fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.fieldset legend {
+  font-weight: 600;
+  padding: 0 0.5rem;
+  color: var(--color-primary);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 2px solid var(--color-border);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-light);
+}
+
+.table td {
+  padding: 0.3rem 0.5rem;
+}
+
+.table input[type='text'],
+.table input[type='number'] {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.textInput {
+  min-width: 140px;
+}
+
+.currencyWrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.prefix {
+  color: var(--color-text-light);
+  font-size: 0.85rem;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  line-height: 1;
+}
+
+.removeBtn:hover {
+  background: #fee;
+  border-radius: var(--radius);
+}
+
+.addBtn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.addBtn:hover {
+  opacity: 0.9;
+}
