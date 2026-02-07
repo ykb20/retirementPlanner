@@ -36,19 +36,19 @@ export const defaultInputs: Inputs = {
   expensePhases: [
     {
       id: '1',
-      label: 'Early retirement',
+      label: 'Phase 1 - retired',
       annualPostTax: 90000,
       startYear: currentYear + 10,
     },
     {
       id: '2',
-      label: 'Both retired, no mortgage',
+      label: 'Phase 2 - retired, no mortgage',
       annualPostTax: 75000,
       startYear: currentYear + 15,
     },
     {
       id: '3',
-      label: 'Later years',
+      label: 'Phase 3 - lower expenses',
       annualPostTax: 60000,
       startYear: currentYear + 25,
     },
