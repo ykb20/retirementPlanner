@@ -35,6 +35,12 @@ export default function NumberInput({
     }
   }, [value, focused, isCurrency]);
 
+  const clamp = (n: number) => {
+    if (min !== undefined && n < min) return min;
+    if (max !== undefined && n > max) return max;
+    return n;
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     if (isCurrency) {
@@ -42,11 +48,11 @@ export default function NumberInput({
       const cleaned = raw.replace(/,/g, '');
       if (cleaned === '' || cleaned === '-') return;
       const n = parseFloat(cleaned);
-      if (!isNaN(n)) onChange(n);
+      if (!isNaN(n)) onChange(clamp(n));
     } else {
       if (raw === '' || raw === '-') return;
       const n = parseFloat(raw);
-      if (!isNaN(n)) onChange(n);
+      if (!isNaN(n)) onChange(clamp(n));
     }
   };
 

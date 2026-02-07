@@ -35,14 +35,14 @@ export default function InputPanel({ inputs, onChange, onReset }: Props) {
         value={person.currentAge}
         onChange={(v) => updatePerson(key, 'currentAge', v)}
         min={18}
-        max={100}
+        max={99}
       />
       <NumberInput
         label="Retirement year"
         value={person.retirementYear}
         onChange={(v) => updatePerson(key, 'retirementYear', v)}
-        min={2024}
-        max={2080}
+        min={2026}
+        max={2049}
       />
       <NumberInput
         label="Annual 401k contribution"
@@ -69,8 +69,8 @@ export default function InputPanel({ inputs, onChange, onReset }: Props) {
         label="Pension start year"
         value={person.pensionStartYear}
         onChange={(v) => updatePerson(key, 'pensionStartYear', v)}
-        min={2024}
-        max={2080}
+        min={2026}
+        max={2049}
       />
       <NumberInput
         label="Social Security (annual)"
@@ -84,7 +84,7 @@ export default function InputPanel({ inputs, onChange, onReset }: Props) {
         value={person.ssStartAge}
         onChange={(v) => updatePerson(key, 'ssStartAge', v)}
         min={62}
-        max={70}
+        max={99}
       />
     </fieldset>
   );
@@ -163,7 +163,7 @@ export default function InputPanel({ inputs, onChange, onReset }: Props) {
           value={inputs.projectionEndAge}
           onChange={(v) => updateField('projectionEndAge', v)}
           min={70}
-          max={110}
+          max={99}
         />
       </fieldset>
     </div>
