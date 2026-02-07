@@ -129,10 +129,8 @@ export default function ExpensePhaseEditor({ phases, onChange }: Props) {
                 <input
                   type="number"
                   value={phase.startYear}
-                  onChange={(e) => {
-                    const n = Number(e.target.value);
-                    if (!isNaN(n)) updatePhase(i, 'startYear', Math.min(2049, Math.max(2026, n)));
-                  }}
+                  onChange={(e) => updatePhase(i, 'startYear', Number(e.target.value))}
+                  onBlur={() => updatePhase(i, 'startYear', Math.min(2049, Math.max(2026, phase.startYear)))}
                   min={2026}
                   max={2049}
                 />

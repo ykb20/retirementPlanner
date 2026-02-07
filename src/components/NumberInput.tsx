@@ -48,11 +48,11 @@ export default function NumberInput({
       const cleaned = raw.replace(/,/g, '');
       if (cleaned === '' || cleaned === '-') return;
       const n = parseFloat(cleaned);
-      if (!isNaN(n)) onChange(clamp(n));
+      if (!isNaN(n)) onChange(n);
     } else {
       if (raw === '' || raw === '-') return;
       const n = parseFloat(raw);
-      if (!isNaN(n)) onChange(clamp(n));
+      if (!isNaN(n)) onChange(n);
     }
   };
 
@@ -63,7 +63,8 @@ export default function NumberInput({
 
   const handleBlur = () => {
     setFocused(false);
-    if (isCurrency) setDisplay(formatWithCommas(value));
+    onChange(clamp(value));
+    if (isCurrency) setDisplay(formatWithCommas(clamp(value)));
   };
 
   return (
