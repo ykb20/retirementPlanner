@@ -21,7 +21,6 @@ export function runProjection(inputs: Inputs): ProjectionResult {
     person2,
     taxDeferredBalance,
     taxableBalance,
-    projectionEndAge,
     preRetNominalGrowth,
     postRetNominalGrowth,
     inflationRate,
@@ -33,13 +32,10 @@ export function runProjection(inputs: Inputs): ProjectionResult {
   const realPreRetGrowth = realReturn(preRetNominalGrowth, inflationRate);
   const realPostRetGrowth = realReturn(postRetNominalGrowth, inflationRate);
 
-  // Determine the projection end year based on the older person reaching projectionEndAge
   const person1BirthYear = currentYear - person1.currentAge;
   const person2BirthYear = currentYear - person2.currentAge;
 
-  const person1EndYear = person1BirthYear + projectionEndAge;
-  const person2EndYear = person2BirthYear + projectionEndAge;
-  const endYear = Math.max(person1EndYear, person2EndYear);
+  const maxEndYear = 2076;
 
   const bothRetiredYear = Math.max(person1.retirementYear, person2.retirementYear);
 
@@ -49,7 +45,7 @@ export function runProjection(inputs: Inputs): ProjectionResult {
 
   const rows: ProjectionRow[] = [];
 
-  for (let year = currentYear; year <= endYear; year++) {
+  for (let year = currentYear; year <= maxEndYear; year++) {
     const person1Age = year - person1BirthYear;
     const person2Age = year - person2BirthYear;
 
@@ -125,6 +121,8 @@ export function runProjection(inputs: Inputs): ProjectionResult {
       totalPortfolio: taxDeferred + taxable,
       depleted,
     });
+
+    if (depleted) break;
   }
 
   return {

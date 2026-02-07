@@ -158,13 +158,6 @@ export default function InputPanel({ inputs, onChange, onReset }: Props) {
           suffix="%"
           step={5}
         />
-        <NumberInput
-          label="Projection end age"
-          value={inputs.projectionEndAge}
-          onChange={(v) => updateField('projectionEndAge', v)}
-          min={70}
-          max={99}
-        />
       </fieldset>
     </div>
   );

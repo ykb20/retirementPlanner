@@ -27,7 +27,6 @@ export const defaultInputs: Inputs = {
   },
   taxDeferredBalance: 800000,
   taxableBalance: 200000,
-  projectionEndAge: 92,
   preRetNominalGrowth: 0.06,
   postRetNominalGrowth: 0.0525,
   inflationRate: 0.025,

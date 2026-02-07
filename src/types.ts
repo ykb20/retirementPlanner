@@ -22,7 +22,6 @@ export interface Inputs {
   person2: PersonInputs;
   taxDeferredBalance: number;
   taxableBalance: number;
-  projectionEndAge: number;
   preRetNominalGrowth: number;
   postRetNominalGrowth: number;
   inflationRate: number;
