@@ -19,10 +19,10 @@ export default function Summary({ result, inputs }: Props) {
     );
   }
 
-  const bothRetiredYear = Math.max(
-    inputs.person1.retirementYear,
-    inputs.person2.retirementYear
-  );
+  const isSingle = inputs.filingStatus === 'single';
+  const bothRetiredYear = isSingle
+    ? inputs.person1.retirementYear
+    : Math.max(inputs.person1.retirementYear, inputs.person2.retirementYear);
 
   // Find portfolio value at retirement
   const retirementRow = rows.find((r) => r.year === bothRetiredYear);
@@ -44,7 +44,7 @@ export default function Summary({ result, inputs }: Props) {
         <div className={styles.card}>
           <span className={styles.label}>Retirement Nest Egg</span>
           <span className={styles.value}>{formatCurrency(retirementNestEgg)}</span>
-          <span className={styles.detail}>at both-retired year ({bothRetiredYear})</span>
+          <span className={styles.detail}>at {isSingle ? 'retirement year' : 'both-retired year'} ({bothRetiredYear})</span>
         </div>
 
         <div className={styles.card}>
@@ -62,7 +62,7 @@ export default function Summary({ result, inputs }: Props) {
           </span>
           <span className={styles.detail}>
             {depletionYear
-              ? `Portfolio depleted at age ${depletionYear - (new Date().getFullYear() - Math.max(inputs.person1.currentAge, inputs.person2.currentAge))}`
+              ? `Portfolio depleted at age ${depletionYear - (new Date().getFullYear() - (isSingle ? inputs.person1.currentAge : Math.max(inputs.person1.currentAge, inputs.person2.currentAge)))}`
               : `at end of projection`}
           </span>
         </div>

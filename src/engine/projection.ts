@@ -17,6 +17,7 @@ function getActivePhase(phases: ExpensePhase[], year: number): ExpensePhase | nu
 export function runProjection(inputs: Inputs): ProjectionResult {
   const currentYear = new Date().getFullYear();
   const {
+    filingStatus,
     person1,
     person2,
     taxDeferredBalance,
@@ -29,6 +30,8 @@ export function runProjection(inputs: Inputs): ProjectionResult {
     expensePhases,
   } = inputs;
 
+  const isSingle = filingStatus === 'single';
+
   const realPreRetGrowth = realReturn(preRetNominalGrowth, inflationRate);
   const realPostRetGrowth = realReturn(postRetNominalGrowth, inflationRate);
 
@@ -37,7 +40,9 @@ export function runProjection(inputs: Inputs): ProjectionResult {
 
   const maxEndYear = 2076;
 
-  const bothRetiredYear = Math.max(person1.retirementYear, person2.retirementYear);
+  const bothRetiredYear = isSingle
+    ? person1.retirementYear
+    : Math.max(person1.retirementYear, person2.retirementYear);
 
   let taxDeferred = taxDeferredBalance;
   let taxable = taxableBalance;
@@ -61,20 +66,22 @@ export function runProjection(inputs: Inputs): ProjectionResult {
       taxDeferred += person1.annual401k;
       taxable += person1.annualTaxableSavings;
     }
-    if (year < person2.retirementYear) {
+    if (!isSingle && year < person2.retirementYear) {
       taxDeferred += person2.annual401k;
       taxable += person2.annualTaxableSavings;
     }
 
     // Income streams
     const p1Pension = year >= person1.pensionStartYear ? person1.pensionAmount : 0;
-    const p2Pension = year >= person2.pensionStartYear ? person2.pensionAmount : 0;
+    const p2Pension = isSingle ? 0 : (year >= person2.pensionStartYear ? person2.pensionAmount : 0);
     const p1SS = person1Age >= person1.ssStartAge ? person1.ssAmount : 0;
-    const p2SS = person2Age >= person2.ssStartAge ? person2.ssAmount : 0;
+    const p2SS = isSingle ? 0 : (person2Age >= person2.ssStartAge ? person2.ssAmount : 0);
     const totalIncome = p1Pension + p2Pension + p1SS + p2SS;
 
     // Expenses (only after at least one person retires)
-    const earliestRetirement = Math.min(person1.retirementYear, person2.retirementYear);
+    const earliestRetirement = isSingle
+      ? person1.retirementYear
+      : Math.min(person1.retirementYear, person2.retirementYear);
     const activePhase = year >= earliestRetirement ? getActivePhase(expensePhases, year) : null;
     const postTaxExpense = activePhase ? activePhase.annualPostTax : 0;
     const grossExpense = postTaxExpense > 0
@@ -107,7 +114,7 @@ export function runProjection(inputs: Inputs): ProjectionResult {
     rows.push({
       year,
       person1Age,
-      person2Age,
+      person2Age: isSingle ? 0 : person2Age,
       phase: activePhase?.label ?? (isPreRetirement ? 'Accumulation' : ''),
       grossExpense,
       person1Pension: p1Pension,

@@ -19,10 +19,10 @@ interface Props {
 }
 
 export default function BalanceChart({ rows, inputs }: Props) {
-  const bothRetiredYear = Math.max(
-    inputs.person1.retirementYear,
-    inputs.person2.retirementYear
-  );
+  const isSingle = inputs.filingStatus === 'single';
+  const bothRetiredYear = isSingle
+    ? inputs.person1.retirementYear
+    : Math.max(inputs.person1.retirementYear, inputs.person2.retirementYear);
 
   const data = rows.map((r) => ({
     year: r.year,
@@ -53,7 +53,7 @@ export default function BalanceChart({ rows, inputs }: Props) {
             x={bothRetiredYear}
             stroke="#e74c3c"
             strokeDasharray="5 5"
-            label={{ value: 'Both Retired', position: 'top', fontSize: 11 }}
+            label={{ value: isSingle ? 'Retirement' : 'Both Retired', position: 'top', fontSize: 11 }}
           />
           <Area
             type="monotone"

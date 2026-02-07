@@ -98,9 +98,32 @@ export default function InputPanel({ inputs, onChange, onReset }: Props) {
         </button>
       </div>
 
+      <div className={styles.statusToggle}>
+        <label>
+          <input
+            type="radio"
+            name="filingStatus"
+            value="single"
+            checked={inputs.filingStatus === 'single'}
+            onChange={() => updateField('filingStatus', 'single')}
+          />
+          Single
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="filingStatus"
+            value="married"
+            checked={inputs.filingStatus === 'married'}
+            onChange={() => updateField('filingStatus', 'married')}
+          />
+          Married
+        </label>
+      </div>
+
       <div className={styles.people}>
         {renderPersonSection('person1', inputs.person1)}
-        {renderPersonSection('person2', inputs.person2)}
+        {inputs.filingStatus === 'married' && renderPersonSection('person2', inputs.person2)}
       </div>
 
       <fieldset className={styles.fieldset}>

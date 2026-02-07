@@ -3,6 +3,7 @@ import type { Inputs } from '../types';
 const currentYear = new Date().getFullYear();
 
 export const defaultInputs: Inputs = {
+  filingStatus: 'married',
   person1: {
     name: 'Person 1',
     currentAge: 50,

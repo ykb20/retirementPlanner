@@ -8,10 +8,10 @@ interface Props {
 }
 
 export default function ProjectionTable({ rows, inputs }: Props) {
-  const bothRetiredYear = Math.max(
-    inputs.person1.retirementYear,
-    inputs.person2.retirementYear
-  );
+  const isSingle = inputs.filingStatus === 'single';
+  const bothRetiredYear = isSingle
+    ? inputs.person1.retirementYear
+    : Math.max(inputs.person1.retirementYear, inputs.person2.retirementYear);
 
   return (
     <div className={styles.wrapper}>
@@ -22,7 +22,7 @@ export default function ProjectionTable({ rows, inputs }: Props) {
             <tr>
               <th>Year</th>
               <th>{inputs.person1.name} Age</th>
-              <th>{inputs.person2.name} Age</th>
+              {!isSingle && <th>{inputs.person2.name} Age</th>}
               <th>Phase</th>
               <th>Gross Expense</th>
               <th>Total Income</th>
@@ -43,7 +43,7 @@ export default function ProjectionTable({ rows, inputs }: Props) {
                 <tr key={row.year} className={rowClass}>
                   <td>{row.year}</td>
                   <td>{row.person1Age}</td>
-                  <td>{row.person2Age}</td>
+                  {!isSingle && <td>{row.person2Age}</td>}
                   <td className={styles.phaseCell}>{row.phase}</td>
                   <td>{formatCurrency(row.grossExpense)}</td>
                   <td>{formatCurrency(row.totalIncome)}</td>

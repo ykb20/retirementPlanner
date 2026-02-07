@@ -28,6 +28,20 @@
   opacity: 0.9;
 }
 
+.statusToggle {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.statusToggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
 .people {
   display: grid;
   grid-template-columns: 1fr 1fr;

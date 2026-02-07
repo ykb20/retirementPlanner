@@ -18,6 +18,7 @@ export interface ExpensePhase {
 }
 
 export interface Inputs {
+  filingStatus: 'single' | 'married';
   person1: PersonInputs;
   person2: PersonInputs;
   taxDeferredBalance: number;
