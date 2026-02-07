@@ -85,3 +85,19 @@
 .addBtn:hover {
   opacity: 0.9;
 }
+
+.dragHandle {
+  cursor: grab;
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+  user-select: none;
+  padding: 0 0.3rem;
+}
+
+.dragging {
+  opacity: 0.4;
+}
+
+.dragOver {
+  border-top: 2px solid var(--color-primary);
+}

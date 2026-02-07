@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
 
 interface NumberInputProps {
   label: string;
@@ -11,6 +11,10 @@ interface NumberInputProps {
   suffix?: string;
 }
 
+function formatWithCommas(n: number): string {
+  return n.toLocaleString('en-US');
+}
+
 export default function NumberInput({
   label,
   value,
@@ -21,11 +25,39 @@ export default function NumberInput({
   prefix,
   suffix,
 }: NumberInputProps) {
+  const isCurrency = prefix === '$';
+  const [display, setDisplay] = useState(isCurrency ? formatWithCommas(value) : '');
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (!focused && isCurrency) {
+      setDisplay(formatWithCommas(value));
+    }
+  }, [value, focused, isCurrency]);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    if (raw === '' || raw === '-') return;
-    const n = parseFloat(raw);
-    if (!isNaN(n)) onChange(n);
+    if (isCurrency) {
+      setDisplay(raw);
+      const cleaned = raw.replace(/,/g, '');
+      if (cleaned === '' || cleaned === '-') return;
+      const n = parseFloat(cleaned);
+      if (!isNaN(n)) onChange(n);
+    } else {
+      if (raw === '' || raw === '-') return;
+      const n = parseFloat(raw);
+      if (!isNaN(n)) onChange(n);
+    }
+  };
+
+  const handleFocus = () => {
+    setFocused(true);
+    if (isCurrency) setDisplay(String(value));
+  };
+
+  const handleBlur = () => {
+    setFocused(false);
+    if (isCurrency) setDisplay(formatWithCommas(value));
   };
 
   return (
@@ -33,14 +65,25 @@ export default function NumberInput({
       <span className="number-input__label">{label}</span>
       <span className="number-input__wrapper">
         {prefix && <span className="number-input__affix">{prefix}</span>}
-        <input
-          type="number"
-          value={value}
-          onChange={handleChange}
-          min={min}
-          max={max}
-          step={step}
-        />
+        {isCurrency ? (
+          <input
+            type="text"
+            inputMode="numeric"
+            value={display}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          />
+        ) : (
+          <input
+            type="number"
+            value={value}
+            onChange={handleChange}
+            min={min}
+            max={max}
+            step={step}
+          />
+        )}
         {suffix && <span className="number-input__affix">{suffix}</span>}
       </span>
     </label>
