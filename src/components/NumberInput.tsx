@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 
 interface NumberInputProps {
   label: string;
@@ -26,14 +26,10 @@ export default function NumberInput({
   suffix,
 }: NumberInputProps) {
   const isCurrency = prefix === '$';
-  const [display, setDisplay] = useState(isCurrency ? formatWithCommas(value) : '');
+  const [rawInput, setRawInput] = useState(String(value));
   const [focused, setFocused] = useState(false);
 
-  useEffect(() => {
-    if (!focused && isCurrency) {
-      setDisplay(formatWithCommas(value));
-    }
-  }, [value, focused, isCurrency]);
+  const display = focused ? rawInput : formatWithCommas(value);
 
   const clamp = (n: number) => {
     if (min !== undefined && n < min) return min;
@@ -44,7 +40,7 @@ export default function NumberInput({
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     if (isCurrency) {
-      setDisplay(raw);
+      setRawInput(raw);
       const cleaned = raw.replace(/,/g, '');
       if (cleaned === '' || cleaned === '-') return;
       const n = parseFloat(cleaned);
@@ -58,13 +54,12 @@ export default function NumberInput({
 
   const handleFocus = () => {
     setFocused(true);
-    if (isCurrency) setDisplay(String(value));
+    if (isCurrency) setRawInput(String(value));
   };
 
   const handleBlur = () => {
     setFocused(false);
     onChange(clamp(value));
-    if (isCurrency) setDisplay(formatWithCommas(clamp(value)));
   };
 
   return (
