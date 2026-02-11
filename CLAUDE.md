@@ -8,8 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build:** `npm run build` (runs `tsc -b && vite build`)
 - **Lint:** `npm run lint` (ESLint)
 - **Preview build:** `npm run preview`
-
-No test framework is configured.
+- **Test:** `npm run test` (Vitest, single run)
+- **Test watch:** `npm run test:watch` (Vitest in watch mode)
+- **Test coverage:** `npm run test:coverage` (coverage scoped to `src/engine/` and `src/utils/`)
 
 ## Architecture
 
