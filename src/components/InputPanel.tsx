@@ -1,4 +1,4 @@
-import type { Inputs, PersonInputs } from '../types';
+import type { Inputs, PersonInputs, ProjectionMode } from '../types';
 import NumberInput from './NumberInput';
 import styles from './InputPanel.module.css';
 
@@ -6,9 +6,11 @@ interface Props {
   inputs: Inputs;
   onChange: (inputs: Inputs) => void;
   onReset: () => void;
+  projectionMode: ProjectionMode;
+  onModeChange: (mode: ProjectionMode) => void;
 }
 
-export default function InputPanel({ inputs, onChange, onReset }: Props) {
+export default function InputPanel({ inputs, onChange, onReset, projectionMode, onModeChange }: Props) {
   const updatePerson = (key: 'person1' | 'person2', field: keyof PersonInputs, value: string | number) => {
     onChange({
       ...inputs,
@@ -118,6 +120,29 @@ export default function InputPanel({ inputs, onChange, onReset }: Props) {
             onChange={() => updateField('filingStatus', 'married')}
           />
           Married
+        </label>
+      </div>
+
+      <div className={styles.statusToggle}>
+        <label>
+          <input
+            type="radio"
+            name="projectionMode"
+            value="real"
+            checked={projectionMode === 'real'}
+            onChange={() => onModeChange('real')}
+          />
+          Inflation-Adjusted
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="projectionMode"
+            value="nominal"
+            checked={projectionMode === 'nominal'}
+            onChange={() => onModeChange('nominal')}
+          />
+          Nominal
         </label>
       </div>
 

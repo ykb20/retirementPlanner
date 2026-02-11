@@ -1,13 +1,14 @@
-import type { ProjectionResult, Inputs } from '../types';
+import type { ProjectionResult, Inputs, ProjectionMode } from '../types';
 import { formatCurrency, formatPercent } from '../utils/format';
 import styles from './Summary.module.css';
 
 interface Props {
   result: ProjectionResult;
   inputs: Inputs;
+  projectionMode: ProjectionMode;
 }
 
-export default function Summary({ result, inputs }: Props) {
+export default function Summary({ result, inputs, projectionMode }: Props) {
   const { rows, depletionYear, finalBalance } = result;
 
   if (rows.length === 0) {
@@ -68,9 +69,13 @@ export default function Summary({ result, inputs }: Props) {
         </div>
 
         <div className={styles.card}>
-          <span className={styles.label}>Real Returns</span>
+          <span className={styles.label}>
+            {projectionMode === 'real' ? 'Real Returns' : 'Nominal Returns'}
+          </span>
           <span className={styles.value}>
-            {formatPercent(realPreRetGrowth)} / {formatPercent(realPostRetGrowth)}
+            {projectionMode === 'real'
+              ? `${formatPercent(realPreRetGrowth)} / ${formatPercent(realPostRetGrowth)}`
+              : `${formatPercent(inputs.preRetNominalGrowth)} / ${formatPercent(inputs.postRetNominalGrowth)}`}
           </span>
           <span className={styles.detail}>pre / post retirement</span>
         </div>

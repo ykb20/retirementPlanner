@@ -1,4 +1,4 @@
-import type { Inputs, ProjectionRow, ProjectionResult, ExpensePhase } from '../types';
+import type { Inputs, ProjectionRow, ProjectionResult, ExpensePhase, ProjectionMode } from '../types';
 import { grossUp, realReturn } from './helpers';
 
 export function getActivePhase(phases: ExpensePhase[], year: number): ExpensePhase | null {
@@ -14,7 +14,19 @@ export function getActivePhase(phases: ExpensePhase[], year: number): ExpensePha
   return active;
 }
 
-export function runProjection(inputs: Inputs): ProjectionResult {
+/**
+ * Run a year-by-year retirement projection.
+ *
+ * When mode is 'real' (default), all values are in today's (inflation-adjusted)
+ * dollars — growth rates are reduced by inflation and dollar streams are constant.
+ *
+ * When mode is 'nominal', growth rates are used as-is and all dollar-denominated
+ * inputs (contributions, pension, SS, expenses) are inflated by a cumulative
+ * factor each year. Starting balances are already in current nominal dollars and
+ * are not inflated. This produces correct nominal projections where depletion
+ * timing and withdrawal ordering may differ from the real-dollar projection.
+ */
+export function runProjection(inputs: Inputs, mode: ProjectionMode = 'real'): ProjectionResult {
   const currentYear = new Date().getFullYear();
   const {
     filingStatus,
@@ -30,10 +42,12 @@ export function runProjection(inputs: Inputs): ProjectionResult {
     expensePhases,
   } = inputs;
 
+  const isNominal = mode === 'nominal';
   const isSingle = filingStatus === 'single';
 
-  const realPreRetGrowth = realReturn(preRetNominalGrowth, inflationRate);
-  const realPostRetGrowth = realReturn(postRetNominalGrowth, inflationRate);
+  // In real mode, reduce growth by inflation; in nominal mode, use rates as-is
+  const preRetGrowth = isNominal ? preRetNominalGrowth : realReturn(preRetNominalGrowth, inflationRate);
+  const postRetGrowth = isNominal ? postRetNominalGrowth : realReturn(postRetNominalGrowth, inflationRate);
 
   const person1BirthYear = currentYear - person1.currentAge;
   const person2BirthYear = currentYear - person2.currentAge;
@@ -48,6 +62,10 @@ export function runProjection(inputs: Inputs): ProjectionResult {
   let taxable = taxableBalance;
   let depletionYear: number | null = null;
 
+  // Cumulative inflation factor for nominal mode.
+  // Starts at 1.0 (current year = today's dollars), compounds each subsequent year.
+  let inflationFactor = 1;
+
   const rows: ProjectionRow[] = [];
 
   for (let year = currentYear; year <= maxEndYear; year++) {
@@ -55,35 +73,43 @@ export function runProjection(inputs: Inputs): ProjectionResult {
     const person2Age = year - person2BirthYear;
 
     const isPreRetirement = year < bothRetiredYear;
-    const growthRate = isPreRetirement ? realPreRetGrowth : realPostRetGrowth;
+    const growthRate = isPreRetirement ? preRetGrowth : postRetGrowth;
+
+    // In nominal mode, compound the inflation factor each year after the first
+    if (isNominal && year > currentYear) {
+      inflationFactor *= 1 + inflationRate;
+    }
+
+    // Helper: inflate a today's-dollar amount for nominal mode
+    const inflate = (amount: number) => isNominal ? amount * inflationFactor : amount;
 
     // Apply growth
     taxDeferred = taxDeferred * (1 + growthRate);
     taxable = taxable * (1 + growthRate);
 
-    // Pre-retirement contributions
+    // Pre-retirement contributions (inflated in nominal mode)
     if (year < person1.retirementYear) {
-      taxDeferred += person1.annual401k;
-      taxable += person1.annualTaxableSavings;
+      taxDeferred += inflate(person1.annual401k);
+      taxable += inflate(person1.annualTaxableSavings);
     }
     if (!isSingle && year < person2.retirementYear) {
-      taxDeferred += person2.annual401k;
-      taxable += person2.annualTaxableSavings;
+      taxDeferred += inflate(person2.annual401k);
+      taxable += inflate(person2.annualTaxableSavings);
     }
 
-    // Income streams
-    const p1Pension = year >= person1.pensionStartYear ? person1.pensionAmount : 0;
-    const p2Pension = isSingle ? 0 : (year >= person2.pensionStartYear ? person2.pensionAmount : 0);
-    const p1SS = person1Age >= person1.ssStartAge ? person1.ssAmount : 0;
-    const p2SS = isSingle ? 0 : (person2Age >= person2.ssStartAge ? person2.ssAmount : 0);
+    // Income streams (inflated in nominal mode)
+    const p1Pension = year >= person1.pensionStartYear ? inflate(person1.pensionAmount) : 0;
+    const p2Pension = isSingle ? 0 : (year >= person2.pensionStartYear ? inflate(person2.pensionAmount) : 0);
+    const p1SS = person1Age >= person1.ssStartAge ? inflate(person1.ssAmount) : 0;
+    const p2SS = isSingle ? 0 : (person2Age >= person2.ssStartAge ? inflate(person2.ssAmount) : 0);
     const totalIncome = p1Pension + p2Pension + p1SS + p2SS;
 
-    // Expenses (only after at least one person retires)
+    // Expenses (only after at least one person retires, inflated in nominal mode)
     const earliestRetirement = isSingle
       ? person1.retirementYear
       : Math.min(person1.retirementYear, person2.retirementYear);
     const activePhase = year >= earliestRetirement ? getActivePhase(expensePhases, year) : null;
-    const postTaxExpense = activePhase ? activePhase.annualPostTax : 0;
+    const postTaxExpense = activePhase ? inflate(activePhase.annualPostTax) : 0;
     const grossExpense = postTaxExpense > 0
       ? grossUp(postTaxExpense, taxablePortionOfWithdrawals, effectiveTaxRate)
       : 0;

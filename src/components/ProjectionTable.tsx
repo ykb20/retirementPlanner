@@ -1,13 +1,14 @@
-import type { ProjectionRow, Inputs } from '../types';
+import type { ProjectionRow, Inputs, ProjectionMode } from '../types';
 import { formatCurrency } from '../utils/format';
 import styles from './ProjectionTable.module.css';
 
 interface Props {
   rows: ProjectionRow[];
   inputs: Inputs;
+  projectionMode: ProjectionMode;
 }
 
-export default function ProjectionTable({ rows, inputs }: Props) {
+export default function ProjectionTable({ rows, inputs, projectionMode }: Props) {
   const isSingle = inputs.filingStatus === 'single';
   const bothRetiredYear = isSingle
     ? inputs.person1.retirementYear
@@ -15,7 +16,12 @@ export default function ProjectionTable({ rows, inputs }: Props) {
 
   return (
     <div className={styles.wrapper}>
-      <h2>Year-by-Year Projection</h2>
+      <h2>
+        Year-by-Year Projection{' '}
+        <span className={styles.modeLabel}>
+          ({projectionMode === 'real' ? "inflation-adjusted" : "nominal"})
+        </span>
+      </h2>
       <div className={styles.tableScroll}>
         <table className={styles.table}>
           <thead>
