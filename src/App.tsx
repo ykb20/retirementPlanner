@@ -1,4 +1,5 @@
-import type { Inputs } from './types';
+import { useState } from 'react';
+import type { Inputs, ProjectionMode } from './types';
 import { defaultInputs } from './engine/defaults';
 import { useLocalStorage, useResetToDefaults } from './hooks/useLocalStorage';
 import { useProjection } from './hooks/useProjection';
@@ -15,21 +16,28 @@ function App() {
     defaultInputs
   );
   const resetToDefaults = useResetToDefaults(defaultInputs, setInputs);
-  const result = useProjection(inputs);
+  const [projectionMode, setProjectionMode] = useState<ProjectionMode>('real');
+  const result = useProjection(inputs, projectionMode);
 
   return (
     <div className={styles.app}>
       <h1 className={styles.title}>Retirement Planner</h1>
       <div className={styles.layout}>
-        <InputPanel inputs={inputs} onChange={setInputs} onReset={resetToDefaults} />
+        <InputPanel
+          inputs={inputs}
+          onChange={setInputs}
+          onReset={resetToDefaults}
+          projectionMode={projectionMode}
+          onModeChange={setProjectionMode}
+        />
         <ExpensePhaseEditor
           phases={inputs.expensePhases}
           onChange={(phases) => setInputs({ ...inputs, expensePhases: phases })}
         />
         <div className={styles.outputs}>
-          <Summary result={result} inputs={inputs} />
-          <BalanceChart rows={result.rows} inputs={inputs} />
-          <ProjectionTable rows={result.rows} inputs={inputs} />
+          <Summary result={result} inputs={inputs} projectionMode={projectionMode} />
+          <BalanceChart rows={result.rows} inputs={inputs} projectionMode={projectionMode} />
+          <ProjectionTable rows={result.rows} inputs={inputs} projectionMode={projectionMode} />
         </div>
       </div>
     </div>

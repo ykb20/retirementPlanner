@@ -160,3 +160,138 @@ describe('runProjection', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// runProjection – nominal mode
+// ---------------------------------------------------------------------------
+describe('runProjection (nominal mode)', () => {
+  const currentYear = new Date().getFullYear();
+
+  function makeInputs(overrides: Partial<Inputs> = {}): Inputs {
+    return { ...defaultInputs, ...overrides };
+  }
+
+  it('uses full nominal growth rate instead of real rate', () => {
+    const inputs = makeInputs({
+      taxDeferredBalance: 100000,
+      taxableBalance: 0,
+      preRetNominalGrowth: 0.06,
+      inflationRate: 0.025,
+      expensePhases: [],
+      person1: { ...defaultInputs.person1, annual401k: 0, annualTaxableSavings: 0 },
+      person2: { ...defaultInputs.person2, annual401k: 0, annualTaxableSavings: 0 },
+    });
+
+    const nominalResult = runProjection(inputs, 'nominal');
+    const realResult = runProjection(inputs, 'real');
+
+    // Nominal balances grow faster since they use 6% instead of ~3.5%
+    expect(nominalResult.rows[0].taxDeferred).toBeGreaterThan(realResult.rows[0].taxDeferred);
+    // Verify exact nominal growth: 100000 * 1.06
+    expect(nominalResult.rows[0].taxDeferred).toBeCloseTo(106000, 0);
+  });
+
+  it('inflates contributions in nominal mode', () => {
+    const annual401k = 20000;
+    const inputs = makeInputs({
+      taxDeferredBalance: 0,
+      taxableBalance: 0,
+      preRetNominalGrowth: 0,
+      inflationRate: 0.03,
+      person1: {
+        ...defaultInputs.person1,
+        retirementYear: currentYear + 3,
+        annual401k,
+        annualTaxableSavings: 0,
+      },
+      filingStatus: 'single' as const,
+      expensePhases: [],
+    });
+
+    const nominalResult = runProjection(inputs, 'nominal');
+    const realResult = runProjection(inputs, 'real');
+
+    // With 0% growth, real mode contributes 20000 each year (constant dollars)
+    // Nominal mode inflates: year0 = 20000, year1 = 20000*1.03, year2 = 20000*1.03^2
+    // After 3 years of contributions (years 0,1,2), nominal total should exceed real
+    const nominalRow2 = nominalResult.rows[2];
+    const realRow2 = realResult.rows[2];
+    expect(nominalRow2.taxDeferred).toBeGreaterThan(realRow2.taxDeferred);
+  });
+
+  it('inflates expenses in nominal mode', () => {
+    const inputs = makeInputs({
+      taxDeferredBalance: 1000000,
+      taxableBalance: 0,
+      preRetNominalGrowth: 0,
+      postRetNominalGrowth: 0,
+      inflationRate: 0.03,
+      filingStatus: 'single' as const,
+      person1: {
+        ...defaultInputs.person1,
+        retirementYear: currentYear,
+        ssAmount: 0,
+        pensionAmount: 0,
+        annual401k: 0,
+        annualTaxableSavings: 0,
+      },
+      expensePhases: [
+        { id: '1', label: 'Retired', annualPostTax: 50000, startYear: currentYear },
+      ],
+    });
+
+    const nominalResult = runProjection(inputs, 'nominal');
+    const realResult = runProjection(inputs, 'real');
+
+    // In year 0, inflation factor = 1, so expenses should match
+    expect(nominalResult.rows[0].grossExpense).toBeCloseTo(realResult.rows[0].grossExpense, 2);
+
+    // In year 1+, nominal expenses should be larger due to inflation
+    expect(nominalResult.rows[1].grossExpense).toBeGreaterThan(realResult.rows[1].grossExpense);
+  });
+
+  it('inflates income streams in nominal mode', () => {
+    const inputs = makeInputs({
+      taxDeferredBalance: 0,
+      taxableBalance: 0,
+      preRetNominalGrowth: 0,
+      postRetNominalGrowth: 0,
+      inflationRate: 0.03,
+      filingStatus: 'single' as const,
+      person1: {
+        ...defaultInputs.person1,
+        retirementYear: currentYear,
+        pensionAmount: 24000,
+        pensionStartYear: currentYear,
+        ssAmount: 0,
+        annual401k: 0,
+        annualTaxableSavings: 0,
+      },
+      expensePhases: [],
+    });
+
+    const nominalResult = runProjection(inputs, 'nominal');
+
+    // Year 0: inflation factor = 1, pension = 24000
+    expect(nominalResult.rows[0].person1Pension).toBe(24000);
+    // Year 1: inflation factor = 1.03, pension = 24000 * 1.03 = 24720
+    expect(nominalResult.rows[1].person1Pension).toBeCloseTo(24720, 0);
+  });
+
+  it('defaults to real mode when mode is not specified', () => {
+    const inputs = makeInputs({
+      taxDeferredBalance: 100000,
+      taxableBalance: 0,
+      preRetNominalGrowth: 0.06,
+      inflationRate: 0.025,
+      expensePhases: [],
+      person1: { ...defaultInputs.person1, annual401k: 0, annualTaxableSavings: 0 },
+      person2: { ...defaultInputs.person2, annual401k: 0, annualTaxableSavings: 0 },
+    });
+
+    const defaultResult = runProjection(inputs);
+    const realResult = runProjection(inputs, 'real');
+
+    expect(defaultResult.rows[0].taxDeferred).toBe(realResult.rows[0].taxDeferred);
+  });
+});

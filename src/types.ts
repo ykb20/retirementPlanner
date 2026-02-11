@@ -49,6 +49,8 @@ export interface ProjectionRow {
   depleted: boolean;
 }
 
+export type ProjectionMode = 'real' | 'nominal';
+
 export interface ProjectionResult {
   rows: ProjectionRow[];
   depletionYear: number | null;

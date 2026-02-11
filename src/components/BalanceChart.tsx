@@ -9,16 +9,17 @@ import {
   ReferenceLine,
   Legend,
 } from 'recharts';
-import type { ProjectionRow, Inputs } from '../types';
+import type { ProjectionRow, Inputs, ProjectionMode } from '../types';
 import { formatCurrency } from '../utils/format';
 import styles from './BalanceChart.module.css';
 
 interface Props {
   rows: ProjectionRow[];
   inputs: Inputs;
+  projectionMode: ProjectionMode;
 }
 
-export default function BalanceChart({ rows, inputs }: Props) {
+export default function BalanceChart({ rows, inputs, projectionMode }: Props) {
   const isSingle = inputs.filingStatus === 'single';
   const bothRetiredYear = isSingle
     ? inputs.person1.retirementYear
@@ -34,7 +35,11 @@ export default function BalanceChart({ rows, inputs }: Props) {
   return (
     <div className={styles.wrapper}>
       <h2>Portfolio Balance Over Time</h2>
-      <p className={styles.subtitle}>All values in today's dollars</p>
+      <p className={styles.subtitle}>
+        {projectionMode === 'real'
+          ? "All values in today's dollars"
+          : 'All values in nominal (future) dollars'}
+      </p>
       <ResponsiveContainer width="100%" height={400}>
         <AreaChart data={data} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
