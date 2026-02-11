@@ -1,7 +1,7 @@
 import type { Inputs, ProjectionRow, ProjectionResult, ExpensePhase } from '../types';
 import { grossUp, realReturn } from './helpers';
 
-function getActivePhase(phases: ExpensePhase[], year: number): ExpensePhase | null {
+export function getActivePhase(phases: ExpensePhase[], year: number): ExpensePhase | null {
   // Find the phase with the largest startYear that is <= year
   let active: ExpensePhase | null = null;
   for (const phase of phases) {
