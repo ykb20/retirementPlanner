@@ -37,15 +37,19 @@ export default function BalanceChart({ rows, inputs, projectionMode }: Props) {
       <h2>Portfolio Balance Over Time</h2>
       <p className={styles.subtitle}>
         {projectionMode === 'real'
-          ? "All values in today's dollars"
-          : 'All values in nominal (future) dollars'}
+          ? "Inflation-adjusted (today's dollars)"
+          : 'Nominal (future dollars)'}
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <AreaChart data={data} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis dataKey="year" tick={{ fontSize: 12 }} />
           <YAxis
-            tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
+            tickFormatter={(v: number) =>
+              Math.abs(v) >= 1_000_000
+                ? `$${(v / 1_000_000).toFixed(1)}M`
+                : `$${(v / 1000).toFixed(0)}k`
+            }
             tick={{ fontSize: 12 }}
             width={70}
           />

@@ -294,4 +294,123 @@ describe('runProjection (nominal mode)', () => {
 
     expect(defaultResult.rows[0].taxDeferred).toBe(realResult.rows[0].taxDeferred);
   });
+
+  it('produces identical results to real mode when inflation is zero', () => {
+    const inputs = makeInputs({
+      inflationRate: 0,
+      preRetNominalGrowth: 0.06,
+      postRetNominalGrowth: 0.05,
+    });
+
+    const nominalResult = runProjection(inputs, 'nominal');
+    const realResult = runProjection(inputs, 'real');
+
+    expect(nominalResult.rows.length).toBe(realResult.rows.length);
+    for (let i = 0; i < realResult.rows.length; i++) {
+      expect(nominalResult.rows[i].totalPortfolio).toBeCloseTo(realResult.rows[i].totalPortfolio, 2);
+      expect(nominalResult.rows[i].grossExpense).toBeCloseTo(realResult.rows[i].grossExpense, 2);
+      expect(nominalResult.rows[i].totalIncome).toBeCloseTo(realResult.rows[i].totalIncome, 2);
+      expect(nominalResult.rows[i].withdrawal).toBeCloseTo(realResult.rows[i].withdrawal, 2);
+    }
+  });
+
+  it('both modes detect depletion with high expenses', () => {
+    const inputs = makeInputs({
+      taxDeferredBalance: 50000,
+      taxableBalance: 10000,
+      preRetNominalGrowth: 0.04,
+      postRetNominalGrowth: 0.03,
+      inflationRate: 0.025,
+      filingStatus: 'single' as const,
+      person1: {
+        ...defaultInputs.person1,
+        retirementYear: currentYear,
+        ssAmount: 0,
+        pensionAmount: 0,
+        annual401k: 0,
+        annualTaxableSavings: 0,
+      },
+      expensePhases: [
+        { id: '1', label: 'Expensive', annualPostTax: 200000, startYear: currentYear },
+      ],
+    });
+
+    const nominalResult = runProjection(inputs, 'nominal');
+    const realResult = runProjection(inputs, 'real');
+
+    expect(realResult.depletionYear).not.toBeNull();
+    expect(nominalResult.depletionYear).not.toBeNull();
+  });
+
+  it('grossUp produces correct withdrawal amounts in nominal mode', () => {
+    const postTaxExpense = 50000;
+    const taxablePortion = 0.75;
+    const taxRate = 0.25;
+    const inputs = makeInputs({
+      taxDeferredBalance: 1000000,
+      taxableBalance: 0,
+      preRetNominalGrowth: 0,
+      postRetNominalGrowth: 0,
+      inflationRate: 0.03,
+      effectiveTaxRate: taxRate,
+      taxablePortionOfWithdrawals: taxablePortion,
+      filingStatus: 'single' as const,
+      person1: {
+        ...defaultInputs.person1,
+        retirementYear: currentYear,
+        ssAmount: 0,
+        pensionAmount: 0,
+        annual401k: 0,
+        annualTaxableSavings: 0,
+      },
+      expensePhases: [
+        { id: '1', label: 'Retired', annualPostTax: postTaxExpense, startYear: currentYear },
+      ],
+    });
+
+    const result = runProjection(inputs, 'nominal');
+    // Year 0: inflationFactor=1, postTaxExpense=50000
+    // grossUp(50000, 0.75, 0.25) = 50000 / (1 - 0.75*0.25) = 50000 / 0.8125 = 61538.46
+    expect(result.rows[0].grossExpense).toBeCloseTo(61538.46, 0);
+
+    // Year 1: inflationFactor=1.03, postTaxExpense=50000*1.03=51500
+    // grossUp(51500, 0.75, 0.25) = 51500 / 0.8125 = 63384.62
+    expect(result.rows[1].grossExpense).toBeCloseTo(63384.62, 0);
+  });
+
+  it('inflates expenses from year 0 when phases change mid-projection', () => {
+    const inputs = makeInputs({
+      taxDeferredBalance: 2000000,
+      taxableBalance: 0,
+      preRetNominalGrowth: 0,
+      postRetNominalGrowth: 0,
+      inflationRate: 0.03,
+      effectiveTaxRate: 0,
+      taxablePortionOfWithdrawals: 0,
+      filingStatus: 'single' as const,
+      person1: {
+        ...defaultInputs.person1,
+        retirementYear: currentYear,
+        ssAmount: 0,
+        pensionAmount: 0,
+        annual401k: 0,
+        annualTaxableSavings: 0,
+      },
+      expensePhases: [
+        { id: '1', label: 'Phase A', annualPostTax: 80000, startYear: currentYear },
+        { id: '2', label: 'Phase B', annualPostTax: 60000, startYear: currentYear + 5 },
+      ],
+    });
+
+    const result = runProjection(inputs, 'nominal');
+
+    // Year 0: Phase A, inflationFactor=1, expense=80000
+    expect(result.rows[0].grossExpense).toBeCloseTo(80000, 0);
+
+    // Year 5: Phase B kicks in, inflationFactor=1.03^5≈1.15927
+    // Expense = 60000 * 1.03^5 ≈ 69556.45 (inflated from year 0, not from phase start)
+    const year5Row = result.rows[5];
+    expect(year5Row.phase).toBe('Phase B');
+    expect(year5Row.grossExpense).toBeCloseTo(60000 * Math.pow(1.03, 5), 0);
+  });
 });

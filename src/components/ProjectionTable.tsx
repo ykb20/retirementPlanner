@@ -19,7 +19,7 @@ export default function ProjectionTable({ rows, inputs, projectionMode }: Props)
       <h2>
         Year-by-Year Projection{' '}
         <span className={styles.modeLabel}>
-          ({projectionMode === 'real' ? 'inflation-adjusted' : 'nominal dollars'})
+          ({projectionMode === 'real' ? "inflation-adjusted" : "nominal"})
         </span>
       </h2>
       <div className={styles.tableScroll}>
